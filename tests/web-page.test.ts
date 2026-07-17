@@ -48,6 +48,15 @@ describe("web page", () => {
     expect(html).toContain('renderActive(data)');
   });
 
+  it("shows a persistent success confirmation only after a successful save", () => {
+    const html = getPageHtml("zh-CN", "?lang=zh-CN");
+    expect(html).toContain('id="saveSuccessModal" role="dialog"');
+    expect(html).toContain('id="savedCoords"');
+    expect(html).toContain('showSaveSuccess(data, target)');
+    expect(html).toContain(t("zh-CN", "saveSuccessTitle"));
+    expect(html).toContain(t("zh-CN", "saveSuccessBody"));
+  });
+
   it("includes hardware CTA with language path", () => {
     const html = getPageHtml("zh-CN", "?lang=zh-CN");
     expect(html).toContain(hardwarePath("zh-CN"));

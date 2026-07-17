@@ -116,6 +116,11 @@ a{color:var(--primary);text-decoration:none}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;width:100%;max-width:340px}
 .modal h3{text-align:center;margin-bottom:12px;font-size:15px}
 .modal input{width:100%;margin-bottom:10px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:10px;font-size:14px}
+.success-modal{text-align:center;max-width:360px;padding:22px 18px 18px;border-color:rgba(34,197,94,.5)}
+.success-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:rgba(34,197,94,.16);border:1px solid rgba(34,197,94,.5);color:#86efac;font-size:28px;font-weight:700}
+.success-modal h3{font-size:18px;color:#dcfce7;margin-bottom:8px}
+.success-modal p{font-size:13px;line-height:1.5;color:var(--muted)}
+.success-coords{margin:14px 0;padding:10px;background:var(--panel);border:1px solid rgba(34,197,94,.35);border-radius:var(--radius);color:#bbf7d0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;word-break:break-word}
 .footer-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:12px;padding:8px}
 .diag-out{font-family:ui-monospace,monospace;font-size:11px;white-space:pre-wrap;background:var(--panel);border-radius:var(--radius);padding:8px;margin-top:8px;color:var(--muted)}
 .search-results{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -264,6 +269,15 @@ a{color:var(--primary);text-decoration:none}
       <button type="button" class="btn btn-secondary" id="favCancel" data-i18n="cancel"></button>
       <button type="button" class="btn btn-primary" id="favConfirm" data-i18n="confirm"></button>
     </div>
+  </div>
+</div>
+<div class="modal-overlay" id="saveSuccessModal" role="dialog" aria-modal="true" aria-labelledby="saveSuccessTitle">
+  <div class="modal success-modal">
+    <div class="success-icon" aria-hidden="true">✓</div>
+    <h3 id="saveSuccessTitle" data-i18n="saveSuccessTitle"></h3>
+    <p data-i18n="saveSuccessBody"></p>
+    <div class="success-coords" id="savedCoords"></div>
+    <button type="button" class="btn btn-primary" id="saveSuccessClose" data-i18n="done"></button>
   </div>
 </div>
 
@@ -507,6 +521,15 @@ window.__QPIN_NL__ = {
     syncSelectionStatus();
   }
 
+  function showSaveSuccess(data, target){
+    const savedLat = Number.isFinite(data && data.latitude) ? data.latitude : target.lat;
+    const savedLon = Number.isFinite(data && data.longitude) ? data.longitude : target.lon;
+    const savedAcc = Number.isFinite(data && data.accuracy) ? data.accuracy : target.acc;
+    $("savedCoords").textContent = t("lat") + ": " + savedLat.toFixed(6) + "  " + t("lon") + ": " + savedLon.toFixed(6) + "  ±" + savedAcc + "m";
+    $("saveSuccessModal").classList.add("show");
+    $("saveSuccessClose").focus();
+  }
+
   async function queryActive(){
     const seq = ++activeQuerySeq;
     try {
@@ -531,10 +554,10 @@ window.__QPIN_NL__ = {
     try {
       const data = await settingsCall("save", target);
       if (data && data.success) {
-        toast(t("saved"));
         track("network_location_save");
         activeQuerySeq += 1;
         renderActive(data);
+        showSaveSuccess(data, target);
       } else {
         const message = (data && data.error) || t("saveFailed");
         toast(message);
@@ -719,6 +742,10 @@ window.__QPIN_NL__ = {
     $("favNameInput").focus();
   };
   $("favCancel").onclick = () => $("favModal").classList.remove("show");
+  $("saveSuccessClose").onclick = () => $("saveSuccessModal").classList.remove("show");
+  $("saveSuccessModal").onclick = function(event){
+    if (event.target === $("saveSuccessModal")) $("saveSuccessModal").classList.remove("show");
+  };
   $("favConfirm").onclick = function(){
     const name = ($("favNameInput").value || "").trim().slice(0, 30) || (lat.toFixed(4)+","+lon.toFixed(4));
     const list = favs();

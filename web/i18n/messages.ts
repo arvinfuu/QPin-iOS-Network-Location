@@ -30,6 +30,9 @@ export type MessageKey =
   | "saving"
   | "saveFailed"
   | "savedActive"
+  | "saveSuccessTitle"
+  | "saveSuccessBody"
+  | "done"
   | "moduleMissing"
   | "moduleMissingBody"
   | "guide"
@@ -88,6 +91,9 @@ const en: Dict = {
   saving: "Saving to the proxy app…",
   saveFailed: "Could not save this coordinate. Check the module and try again.",
   savedActive: "This target is saved and active in the proxy app.",
+  saveSuccessTitle: "Network location saved",
+  saveSuccessBody: "The target coordinates were written to your proxy app and will be used on the next iOS network-location request.",
+  done: "Done",
   moduleMissing: "Module not active",
   moduleMissingBody:
     "Check: 1) module installed & enabled 2) MITM on with trusted cert 3) hostnames gs-loc.apple.com & gs-loc-cn.apple.com 4) traffic goes through proxy",
@@ -150,6 +156,9 @@ const zhCN: Dict = {
   saving: "正在写入代理工具…",
   saveFailed: "坐标写入失败，请检查模块后重试。",
   savedActive: "该目标坐标已储存，并在代理工具中生效。",
+  saveSuccessTitle: "网络定位设置成功",
+  saveSuccessBody: "目标坐标已写入代理工具，将在 iOS 下次请求网络定位时使用。",
+  done: "完成",
   moduleMissing: "模块未生效",
   moduleMissingBody:
     "请检查：1）已安装并启用模块 2）MITM 已开启且信任证书 3）主机名含 gs-loc.apple.com / gs-loc-cn.apple.com 4）流量已走代理",
@@ -211,6 +220,9 @@ const zhTW: Dict = {
   saving: "正在寫入代理工具…",
   saveFailed: "座標寫入失敗，請檢查模組後重試。",
   savedActive: "此目標座標已儲存，並在代理工具中生效。",
+  saveSuccessTitle: "網路定位設定成功",
+  saveSuccessBody: "目標座標已寫入代理工具，將在 iOS 下次請求網路定位時使用。",
+  done: "完成",
   moduleMissing: "模組未生效",
   moduleMissingBody:
     "請檢查：1）已安裝並啟用模組 2）MITM 已開啟且信任憑證 3）主機名含 gs-loc.apple.com / gs-loc-cn.apple.com 4）流量已走代理",
@@ -272,6 +284,9 @@ const ja: Dict = {
   saving: "プロキシアプリに保存中…",
   saveFailed: "座標を保存できませんでした。モジュールを確認して再試行してください。",
   savedActive: "この目標座標はプロキシアプリに保存され、有効です。",
+  saveSuccessTitle: "ネットワーク位置を保存しました",
+  saveSuccessBody: "目標座標をプロキシアプリに保存しました。次回の iOS ネットワーク位置リクエストで使用されます。",
+  done: "完了",
   moduleMissing: "モジュールが無効",
   moduleMissingBody:
     "確認: 1) モジュール有効 2) MITM と信頼済み証明書 3) gs-loc.apple.com / gs-loc-cn.apple.com 4) トラフィックがプロキシ経由",
@@ -334,6 +349,9 @@ const es: Dict = {
   saving: "Guardando en la app de proxy…",
   saveFailed: "No se pudieron guardar las coordenadas. Revisa el módulo e inténtalo de nuevo.",
   savedActive: "Este objetivo está guardado y activo en la app de proxy.",
+  saveSuccessTitle: "Ubicación de red guardada",
+  saveSuccessBody: "Las coordenadas se guardaron en la app de proxy y se usarán en la próxima solicitud de ubicación de red de iOS.",
+  done: "Listo",
   moduleMissing: "Módulo inactivo",
   moduleMissingBody:
     "Revisa: 1) módulo instalado y activo 2) MITM con certificado de confianza 3) hosts gs-loc.apple.com y gs-loc-cn.apple.com 4) tráfico por el proxy",
