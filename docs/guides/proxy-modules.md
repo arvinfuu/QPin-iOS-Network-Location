@@ -55,7 +55,8 @@ Priority: **persistent store (web save) > module args > passthrough**.
 1. On the QPin picker page, tap **Shadowrocket** to open the module installer in the app.
 2. If app handoff is unavailable, download `qpin-nl.module` and add it from Config → Module.
 3. Install and fully trust Shadowrocket's CA certificate. The module enables HTTPS and HTTP/2 MITM for only the two WLOC hosts.
-4. After a module update, refresh it and reconnect Shadowrocket before testing.
+4. The module rejects UDP/443 only for the two WLOC hosts so `locationd` falls back from QUIC to decryptable HTTP/2. It does not block QUIC globally.
+5. After a module update, refresh it, compile/use the active config, and reconnect Shadowrocket before testing.
 
 ## Quantumult X
 

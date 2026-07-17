@@ -4,6 +4,11 @@
 #!homepage=__APP_BASE__
 #!category=Tools
 
+[Rule]
+# Force Apple WLOC off QUIC so the HTTPS response can be decrypted and patched.
+AND,((DOMAIN,gs-loc.apple.com),(PROTOCOL,UDP),(DST-PORT,443)),REJECT-NO-DROP
+AND,((DOMAIN,gs-loc-cn.apple.com),(PROTOCOL,UDP),(DST-PORT,443)),REJECT-NO-DROP
+
 [Script]
 QPin NL WLOC = type=http-response,pattern=^https?:\/\/gs-loc(-cn)?\.apple\.com\/clls\/wloc,requires-body=1,binary-body-mode=1,max-size=0,timeout=30,script-path=__SCRIPT_BASE__/qpin-nl.js,argument=longitude=&latitude=&accuracy=25&logLevel=info
 QPin NL Settings = type=http-request,pattern=^https?:\/\/gs-loc(-cn)?\.apple\.com\/qpin-nl\/settings,requires-body=0,max-size=0,timeout=10,script-path=__SCRIPT_BASE__/qpin-nl-settings.js

@@ -52,6 +52,18 @@ describe("proxy modules", () => {
     );
   });
 
+  it("forces only Apple WLOC hosts from QUIC to TCP in Shadowrocket", () => {
+    const text = readFileSync(path.join(modulesDir, "qpin-nl.module"), "utf8");
+    expect(text).toContain(
+      "AND,((DOMAIN,gs-loc.apple.com),(PROTOCOL,UDP),(DST-PORT,443)),REJECT-NO-DROP",
+    );
+    expect(text).toContain(
+      "AND,((DOMAIN,gs-loc-cn.apple.com),(PROTOCOL,UDP),(DST-PORT,443)),REJECT-NO-DROP",
+    );
+    expect(text).not.toMatch(/^block-quic\s*=\s*all$/m);
+    expect(text).not.toContain("AND,((PROTOCOL,UDP),(DST-PORT,443)),REJECT-NO-DROP");
+  });
+
   it("references script artifacts", () => {
     for (const f of REQUIRED) {
       const text = readFileSync(path.join(modulesDir, f), "utf8");
