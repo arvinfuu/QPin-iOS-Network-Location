@@ -9,4 +9,6 @@ QPin NL WLOC = type=http-response,pattern=^https?:\/\/gs-loc(-cn)?\.apple\.com\/
 QPin NL Settings = type=http-request,pattern=^https?:\/\/gs-loc(-cn)?\.apple\.com\/qpin-nl\/settings,requires-body=0,max-size=0,timeout=10,script-path=__SCRIPT_BASE__/qpin-nl-settings.js
 
 [MITM]
+enable = true
+h2 = true
 hostname = %APPEND% gs-loc.apple.com, gs-loc-cn.apple.com

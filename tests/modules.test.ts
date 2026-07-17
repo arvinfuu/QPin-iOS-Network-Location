@@ -43,6 +43,15 @@ describe("proxy modules", () => {
     }
   });
 
+  it("enables HTTPS and HTTP/2 MITM in the Shadowrocket module", () => {
+    const text = readFileSync(path.join(modulesDir, "qpin-nl.module"), "utf8");
+    expect(text).toMatch(/^enable\s*=\s*true$/m);
+    expect(text).toMatch(/^h2\s*=\s*true$/m);
+    expect(text).toMatch(
+      /^hostname\s*=\s*%APPEND%\s+gs-loc\.apple\.com,\s*gs-loc-cn\.apple\.com$/m,
+    );
+  });
+
   it("references script artifacts", () => {
     for (const f of REQUIRED) {
       const text = readFileSync(path.join(modulesDir, f), "utf8");
