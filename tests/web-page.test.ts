@@ -27,10 +27,25 @@ describe("web page", () => {
 
   it("uses client-side provider fallback without analytics search parameters", () => {
     const html = getPageHtml("en");
+    const mapWrapStart = html.indexOf('<div class="map-wrap">');
+    const panelStart = html.indexOf('<div class="panel">');
+    const searchStart = html.indexOf('<div class="map-search"');
+    expect(searchStart).toBeGreaterThan(mapWrapStart);
+    expect(searchStart).toBeLessThan(panelStart);
     expect(html).toContain("geocoding-api.open-meteo.com");
     expect(html).toContain("photon.komoot.io");
     expect(html).toContain("nominatim.openstreetmap.org");
     expect(html).not.toMatch(/gtag\([^)]*(lat|lon|search)/i);
+  });
+
+  it("does not preselect a default coordinate and prevents stale active-coordinate updates", () => {
+    const html = getPageHtml("en");
+    expect(html).not.toContain("setPoint(lat, lon, false);");
+    expect(html).toContain('map.on("dragend"');
+    expect(html).toContain("let activeQuerySeq = 0");
+    expect(html).toContain("if (seq !== activeQuerySeq) return;");
+    expect(html).toContain('id="status" role="status" aria-live="polite"');
+    expect(html).toContain('renderActive(data)');
   });
 
   it("includes hardware CTA with language path", () => {

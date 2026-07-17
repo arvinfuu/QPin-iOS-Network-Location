@@ -25,6 +25,11 @@ export type MessageKey =
   | "searchPlace"
   | "search"
   | "hintSave"
+  | "chooseLocationFirst"
+  | "readyToSave"
+  | "saving"
+  | "saveFailed"
+  | "savedActive"
   | "moduleMissing"
   | "moduleMissingBody"
   | "guide"
@@ -78,6 +83,11 @@ const en: Dict = {
   searchPlace: "Search place",
   search: "Search",
   hintSave: "Pick a point, then Save to device. Coordinates stay in your proxy app only.",
+  chooseLocationFirst: "Tap the map, drag it, or search for a target location first.",
+  readyToSave: "Target selected. Save it to make this coordinate active.",
+  saving: "Saving to the proxy app…",
+  saveFailed: "Could not save this coordinate. Check the module and try again.",
+  savedActive: "This target is saved and active in the proxy app.",
   moduleMissing: "Module not active",
   moduleMissingBody:
     "Check: 1) module installed & enabled 2) MITM on with trusted cert 3) hostnames gs-loc.apple.com & gs-loc-cn.apple.com 4) traffic goes through proxy",
@@ -96,7 +106,7 @@ const en: Dict = {
   lat: "Latitude",
   accuracy: "Accuracy (m)",
   manualCoords: "Manual coordinates",
-  apply: "Apply",
+  apply: "Set as target",
   noFavorites: "No favorites yet",
   activeNow: "Active",
   passthrough: "Passthrough (real network location)",
@@ -135,6 +145,11 @@ const zhCN: Dict = {
   searchPlace: "搜索地点",
   search: "搜索",
   hintSave: "选好位置后点「储存到设备」。坐标只保存在代理工具本地，不会上传。",
+  chooseLocationFirst: "请先点击地图、拖动地图或搜索目标位置。",
+  readyToSave: "目标位置已选定，点击「储存到设备」后才会生效。",
+  saving: "正在写入代理工具…",
+  saveFailed: "坐标写入失败，请检查模块后重试。",
+  savedActive: "该目标坐标已储存，并在代理工具中生效。",
   moduleMissing: "模块未生效",
   moduleMissingBody:
     "请检查：1）已安装并启用模块 2）MITM 已开启且信任证书 3）主机名含 gs-loc.apple.com / gs-loc-cn.apple.com 4）流量已走代理",
@@ -153,7 +168,7 @@ const zhCN: Dict = {
   lat: "纬度",
   accuracy: "精度（米）",
   manualCoords: "手动输入经纬度",
-  apply: "应用",
+  apply: "设为目标位置",
   noFavorites: "暂无收藏",
   activeNow: "当前生效",
   passthrough: "透传（真实网络定位）",
@@ -191,6 +206,11 @@ const zhTW: Dict = {
   searchPlace: "搜尋地點",
   search: "搜尋",
   hintSave: "選好位置後點「儲存到裝置」。座標只保存在代理工具本機，不會上傳。",
+  chooseLocationFirst: "請先點擊地圖、拖動地圖或搜尋目標位置。",
+  readyToSave: "目標位置已選定，點擊「儲存到裝置」後才會生效。",
+  saving: "正在寫入代理工具…",
+  saveFailed: "座標寫入失敗，請檢查模組後重試。",
+  savedActive: "此目標座標已儲存，並在代理工具中生效。",
   moduleMissing: "模組未生效",
   moduleMissingBody:
     "請檢查：1）已安裝並啟用模組 2）MITM 已開啟且信任憑證 3）主機名含 gs-loc.apple.com / gs-loc-cn.apple.com 4）流量已走代理",
@@ -209,7 +229,7 @@ const zhTW: Dict = {
   lat: "緯度",
   accuracy: "精度（公尺）",
   manualCoords: "手動輸入經緯度",
-  apply: "套用",
+  apply: "設為目標位置",
   noFavorites: "尚無收藏",
   activeNow: "目前生效",
   passthrough: "透傳（真實網路定位）",
@@ -247,6 +267,11 @@ const ja: Dict = {
   searchPlace: "場所を検索",
   search: "検索",
   hintSave: "地点を選び「端末に保存」。座標はプロキシアプリ内のみに保存されます。",
+  chooseLocationFirst: "地図をタップ、ドラッグ、または検索して目標位置を選択してください。",
+  readyToSave: "目標位置を選択しました。端末に保存すると有効になります。",
+  saving: "プロキシアプリに保存中…",
+  saveFailed: "座標を保存できませんでした。モジュールを確認して再試行してください。",
+  savedActive: "この目標座標はプロキシアプリに保存され、有効です。",
   moduleMissing: "モジュールが無効",
   moduleMissingBody:
     "確認: 1) モジュール有効 2) MITM と信頼済み証明書 3) gs-loc.apple.com / gs-loc-cn.apple.com 4) トラフィックがプロキシ経由",
@@ -265,7 +290,7 @@ const ja: Dict = {
   lat: "緯度",
   accuracy: "精度 (m)",
   manualCoords: "座標を手動入力",
-  apply: "適用",
+  apply: "目標位置に設定",
   noFavorites: "お気に入りなし",
   activeNow: "有効",
   passthrough: "パススルー（実ネットワーク位置）",
@@ -304,6 +329,11 @@ const es: Dict = {
   search: "Buscar",
   hintSave:
     "Elige un punto y guarda. Las coordenadas solo quedan en tu app de proxy.",
+  chooseLocationFirst: "Toca o arrastra el mapa, o busca primero una ubicación objetivo.",
+  readyToSave: "Objetivo seleccionado. Guárdalo para activar estas coordenadas.",
+  saving: "Guardando en la app de proxy…",
+  saveFailed: "No se pudieron guardar las coordenadas. Revisa el módulo e inténtalo de nuevo.",
+  savedActive: "Este objetivo está guardado y activo en la app de proxy.",
   moduleMissing: "Módulo inactivo",
   moduleMissingBody:
     "Revisa: 1) módulo instalado y activo 2) MITM con certificado de confianza 3) hosts gs-loc.apple.com y gs-loc-cn.apple.com 4) tráfico por el proxy",
@@ -322,7 +352,7 @@ const es: Dict = {
   lat: "Latitud",
   accuracy: "Precisión (m)",
   manualCoords: "Coordenadas manuales",
-  apply: "Aplicar",
+  apply: "Usar como objetivo",
   noFavorites: "Sin favoritos",
   activeNow: "Activo",
   passthrough: "Passthrough (ubicación de red real)",

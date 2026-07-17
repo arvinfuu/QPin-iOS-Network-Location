@@ -61,9 +61,16 @@ a{color:var(--primary);text-decoration:none}
 .brand-mark{width:28px;height:28px;border-radius:6px;object-fit:contain;display:block;flex:none}
 .lang select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:12px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.map-wrap{position:relative;width:100%}
+.map-wrap{position:relative;width:100%;isolation:isolate}
 #map .leaflet-tile-pane{filter:none}
-.layer-switch{position:absolute;top:10px;right:10px;z-index:1000;display:flex;flex-wrap:wrap;gap:4px;max-width:70%;justify-content:flex-end}
+.map-search{position:absolute;left:10px;right:10px;top:10px;z-index:1100}
+.map-search-row{display:flex;gap:7px;padding:6px;background:rgba(11,15,20,.94);border:1px solid rgba(139,155,176,.32);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.28);backdrop-filter:blur(10px)}
+.map-search-row input{flex:1;min-width:0;min-height:42px;background:transparent;border:none;color:var(--text);padding:0 8px;font-size:16px;outline:none}
+.map-search-row input::placeholder{color:var(--muted)}
+.map-search-row .btn{flex:none;min-width:68px;min-height:42px;padding:8px 12px}
+.map-search .search-results{max-height:min(42vh,300px);overflow:auto;margin-top:6px;padding:6px;background:rgba(11,15,20,.96);border:1px solid rgba(139,155,176,.32);border-radius:var(--radius);box-shadow:0 10px 28px rgba(0,0,0,.34)}
+.map-search .search-results:empty{display:none}
+.layer-switch{position:absolute;left:10px;bottom:10px;z-index:900;display:flex;flex-wrap:wrap;gap:4px;max-width:70%}
 .layer-btn{border:1px solid var(--border);background:rgba(18,24,32,.92);color:var(--text);padding:6px 8px;border-radius:var(--radius);font-size:11px;cursor:pointer}
 .layer-btn.active{background:var(--primary);border-color:var(--primary)}
 .panel{padding:12px;display:flex;flex-direction:column;gap:10px}
@@ -91,7 +98,10 @@ a{color:var(--primary);text-decoration:none}
 .note{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#fde68a;border-radius:var(--radius);padding:10px 12px;font-size:12px;line-height:1.45}
 .cta{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:var(--radius);padding:10px 12px;font-size:12px;line-height:1.45}
 .cta a.btn{display:inline-flex;align-items:center;justify-content:center;margin-top:8px;text-decoration:none}
-.status{text-align:center;font-size:11px;color:var(--muted);padding:4px 8px}
+.status{font-size:12px;line-height:1.4;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--panel);border-left:3px solid var(--border);border-radius:0 var(--radius) var(--radius) 0}
+.status[data-state="pending"]{color:#fde68a;border-left-color:var(--warn)}
+.status[data-state="success"]{color:#bbf7d0;border-left-color:var(--ok)}
+.status[data-state="error"]{color:#fecaca;border-left-color:var(--danger)}
 .toast{position:fixed;left:50%;top:56px;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 14px;border-radius:var(--radius);font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 .fav-item{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;cursor:pointer}
@@ -136,6 +146,13 @@ a{color:var(--primary);text-decoration:none}
 
   <div class="map-wrap">
     <div id="map" role="application" aria-label="Map"></div>
+    <div class="map-search" role="search">
+      <div class="map-search-row">
+        <input id="searchInput" type="search" autocomplete="off" enterkeyhint="search">
+        <button type="button" class="btn btn-primary" id="searchBtn" data-i18n="search"></button>
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
     <div class="layer-switch">
       <button type="button" class="layer-btn active" data-layer="osm">OSM</button>
       <button type="button" class="layer-btn" data-layer="voyager">Voyager</button>
@@ -152,6 +169,7 @@ a{color:var(--primary);text-decoration:none}
         <span data-i18n="selectLocation"></span>
       </h3>
       <div class="coords" id="coords">—</div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
       <div class="row">
         <button type="button" class="btn btn-primary" id="saveBtn" data-i18n="saveToDevice"></button>
         <button type="button" class="btn btn-secondary" id="favBtn" data-i18n="favorite"></button>
@@ -197,15 +215,6 @@ a{color:var(--primary);text-decoration:none}
     </div>
 
     <div class="card">
-      <h3 data-i18n="searchPlace"></h3>
-      <div class="input-row">
-        <input id="searchInput" type="search" autocomplete="off" enterkeyhint="search">
-        <button type="button" class="btn btn-secondary" style="flex:none;min-width:72px" id="searchBtn" data-i18n="search"></button>
-      </div>
-      <div class="search-results" id="searchResults"></div>
-    </div>
-
-    <div class="card">
       <h3 data-i18n="guide"></h3>
       <div class="module-grid">
         <a class="module-link" href="/modules/qpin-nl.sgmodule">Surge</a>
@@ -242,7 +251,6 @@ a{color:var(--primary);text-decoration:none}
       <a href="https://github.com/arvinfuu/QPin-iOS-Network-Location" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/Yu9191/wloc" target="_blank" rel="noopener">Upstream WLOC</a>
     </div>
-    <div class="status" id="status"></div>
   </div>
 </div>
 
@@ -279,7 +287,8 @@ window.__QPIN_NL__ = {
   let lat = 22.3193, lon = 114.1694, acc = 25, selected = false;
   let marker = null;
   let map, layers = {}, activeLayer = "osm";
-  let moduleReady = false;
+  let activePoint = null;
+  let activeQuerySeq = 0;
 
   const $ = (id) => document.getElementById(id);
   const toast = (msg) => {
@@ -305,7 +314,6 @@ window.__QPIN_NL__ = {
     $("latInput").placeholder = t("lat");
     $("lonInput").placeholder = t("lon");
     $("accInput").placeholder = t("accuracy");
-    $("status").textContent = t("hintSave");
     const paths = {en:"en","zh-CN":"zh-CN","zh-TW":"zh-TW",ja:"ja",es:"es"};
     $("hwLink").href = C.hardwareBase + "/" + (paths[lang]||"en") + "/products/hardware";
     const shadowrocketModuleUrl = new URL("/modules/qpin-nl.module", location.origin).toString();
@@ -314,15 +322,38 @@ window.__QPIN_NL__ = {
     updateCoordsLabel();
   }
 
+  function setSaveStatus(key, state){
+    $("status").textContent = t(key);
+    $("status").setAttribute("data-state", state || "");
+  }
+
+  function pointsMatch(a, b){
+    return Boolean(a && b && Math.abs(a.lat - b.lat) < 0.000001 && Math.abs(a.lon - b.lon) < 0.000001 && a.acc === b.acc);
+  }
+
+  function syncSelectionStatus(){
+    if (!selected) {
+      setSaveStatus("chooseLocationFirst", "");
+      return;
+    }
+    const target = {lat, lon, acc};
+    if (pointsMatch(activePoint, target)) setSaveStatus("savedActive", "success");
+    else setSaveStatus("readyToSave", "pending");
+  }
+
   function updateCoordsLabel(){
     if (!selected) {
       $("coords").textContent = "—";
+      $("saveBtn").disabled = true;
+      syncSelectionStatus();
       return;
     }
+    $("saveBtn").disabled = false;
     $("coords").textContent = t("lat") + ": " + lat.toFixed(6) + "  " + t("lon") + ": " + lon.toFixed(6) + "  ±" + acc + "m";
     $("latInput").value = String(lat);
     $("lonInput").value = String(lon);
     $("accInput").value = String(acc);
+    syncSelectionStatus();
   }
 
   function setPoint(la, lo, fly){
@@ -344,7 +375,8 @@ window.__QPIN_NL__ = {
   }
 
   function initMap(){
-    map = L.map("map", {zoomControl:true, attributionControl:true}).setView([lat, lon], 12);
+    map = L.map("map", {zoomControl:false, attributionControl:true}).setView([lat, lon], 12);
+    L.control.zoom({position:"bottomright"}).addTo(map);
     setTimeout(function(){ try { map.invalidateSize(); } catch (e) {} }, 100);
     layers.osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -359,7 +391,14 @@ window.__QPIN_NL__ = {
       attribution: "&copy; OSM &copy; CARTO"
     });
     layers.osm.addTo(map);
-    map.on("click", function(e){ setPoint(e.latlng.lat, e.latlng.lng, false); });
+    map.on("click", function(e){
+      $("searchResults").innerHTML = "";
+      setPoint(e.latlng.lat, e.latlng.lng, false);
+    });
+    map.on("dragend", function(){
+      const center = map.getCenter();
+      setPoint(center.lat, center.lng, false);
+    });
     document.querySelectorAll(".layer-btn").forEach((btn) => {
       btn.addEventListener("click", function(){
         const name = btn.getAttribute("data-layer");
@@ -447,11 +486,9 @@ window.__QPIN_NL__ = {
       if (!data || data.service !== C.settingsService || data.protocolVersion !== C.settingsProtocolVersion) {
         throw new Error("unexpected settings response");
       }
-      moduleReady = true;
       $("errorBanner").classList.remove("show");
       return data;
     } catch (e) {
-      moduleReady = false;
       $("errorBanner").classList.add("show");
       throw e;
     } finally {
@@ -459,47 +496,68 @@ window.__QPIN_NL__ = {
     }
   }
 
+  function renderActive(data){
+    if (data && data.success && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)) {
+      activePoint = {lat:data.latitude, lon:data.longitude, acc:data.accuracy || 25};
+      $("activeValue").textContent = activePoint.lat.toFixed(6) + ", " + activePoint.lon.toFixed(6) + " ±" + activePoint.acc + "m";
+    } else {
+      activePoint = null;
+      $("activeValue").textContent = t("passthrough");
+    }
+    syncSelectionStatus();
+  }
+
   async function queryActive(){
+    const seq = ++activeQuerySeq;
     try {
       const data = await settingsCall("query");
-      if (data && data.success) {
-        $("activeValue").textContent = data.latitude.toFixed(6) + ", " + data.longitude.toFixed(6) + " ±" + (data.accuracy||25) + "m";
-      } else {
-        $("activeValue").textContent = t("passthrough");
-      }
+      if (seq !== activeQuerySeq) return;
+      renderActive(data);
     } catch {
+      if (seq !== activeQuerySeq) return;
+      activePoint = null;
       $("activeValue").textContent = t("needProxy");
+      syncSelectionStatus();
     }
   }
 
   async function save(){
-    if (!selected) { toast(t("selectLocation")); return; }
+    if (!selected) { toast(t("chooseLocationFirst")); return; }
     acc = clampAcc(+$("accInput").value || acc);
+    const target = {lon, lat, acc};
+    activeQuerySeq += 1;
+    $("saveBtn").disabled = true;
+    setSaveStatus("saving", "pending");
     try {
-      await settingsCall("query");
-      if (!moduleReady) throw new Error("module unavailable");
-      const data = await settingsCall("save", {lon, lat, acc});
+      const data = await settingsCall("save", target);
       if (data && data.success) {
         toast(t("saved"));
         track("network_location_save");
-        queryActive();
+        activeQuerySeq += 1;
+        renderActive(data);
       } else {
-        toast((data && data.error) || t("needProxy"));
+        const message = (data && data.error) || t("saveFailed");
+        toast(message);
+        setSaveStatus("saveFailed", "error");
       }
     } catch {
       toast(t("needProxy"));
+      setSaveStatus("saveFailed", "error");
+    } finally {
+      $("saveBtn").disabled = !selected;
     }
   }
 
   async function clearActive(){
+    activeQuerySeq += 1;
     try {
-      await settingsCall("query");
-      if (!moduleReady) throw new Error("module unavailable");
       const data = await settingsCall("clear");
       if (data && data.success) {
         toast(t("cleared"));
         track("network_location_clear");
-        queryActive();
+        activePoint = null;
+        $("activeValue").textContent = t("passthrough");
+        syncSelectionStatus();
       } else toast((data && data.error) || t("needProxy"));
     } catch { toast(t("needProxy")); }
   }
@@ -651,9 +709,10 @@ window.__QPIN_NL__ = {
     }
     acc = a;
     setPoint(la, lo, true);
+    toast(t("readyToSave"));
   };
   $("favBtn").onclick = function(){
-    if (!selected) { toast(t("selectLocation")); return; }
+    if (!selected) { toast(t("chooseLocationFirst")); return; }
     $("favModalCoords").textContent = lat.toFixed(6) + ", " + lon.toFixed(6);
     $("favModal").classList.add("show");
     $("favNameInput").value = "";
@@ -684,7 +743,6 @@ window.__QPIN_NL__ = {
   // restore lang preference via query already handled server-side
   applyI18n();
   initMap();
-  setPoint(lat, lon, false);
   queryActive();
 })();
 <\/script>
