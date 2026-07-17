@@ -1,6 +1,6 @@
 /** Reproducible build for the standalone Amplify site and proxy artifacts. */
 import * as esbuild from "esbuild";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -85,6 +85,7 @@ async function buildScripts(): Promise<void> {
 
 async function buildWeb(): Promise<void> {
   await mkdir(siteDir, { recursive: true });
+  await copyFile(path.join(root, "assets/qpin-logo.png"), path.join(siteDir, "qpin-logo.png"));
   await writeFile(path.join(siteDir, "index.html"), getPageHtml("en"), "utf8");
   await writeFile(path.join(siteDir, "404.html"), getPageHtml("en"), "utf8");
   for (const lang of LANGS) {

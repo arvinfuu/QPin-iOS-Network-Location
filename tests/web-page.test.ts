@@ -11,6 +11,8 @@ describe("web page", () => {
       expect(html).toContain("viewport");
       expect(html).toContain(t(lang, "saveToDevice"));
       expect(html).toContain("qpin-nl/settings");
+      expect(html).toContain('src="/qpin-logo.png"');
+      expect(html).toContain('rel="apple-touch-icon"');
       expect(html).toContain("X-QPin-NL-Protocol");
       expect(html).toContain("X-QPin-NL-Longitude");
       expect(html).not.toContain("action=save&lon=");

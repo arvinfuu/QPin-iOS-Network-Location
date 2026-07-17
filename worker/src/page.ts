@@ -39,6 +39,8 @@ export function getPageHtml(acceptLanguage?: string, search = ""): string {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="QPin NL">
 <meta property="og:title" content="${escapeHtml(title)}">
+<link rel="icon" type="image/png" href="/qpin-logo.png">
+<link rel="apple-touch-icon" href="/qpin-logo.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""><\/script>
 <style>
@@ -56,8 +58,7 @@ a{color:var(--primary);text-decoration:none}
 .shell{max-width:720px;margin:0 auto;padding:0 0 32px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:rgba(18,24,32,.92);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:500}
 .brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
-.brand-mark{width:22px;height:22px;border-radius:6px;background:var(--primary);display:grid;place-items:center}
-.brand-mark svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2}
+.brand-mark{width:28px;height:28px;border-radius:6px;object-fit:contain;display:block;flex:none}
 .lang select{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:12px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .map-wrap{position:relative;width:100%}
@@ -124,9 +125,7 @@ a{color:var(--primary);text-decoration:none}
 <div class="shell">
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-      </span>
+      <img class="brand-mark" src="/qpin-logo.png" alt="" width="28" height="28">
       <span id="brandTitle">QPin Network Location</span>
     </div>
     <div class="lang">
