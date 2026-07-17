@@ -39,6 +39,16 @@ describe("web page", () => {
     expect(html).toContain("products/hardware");
   });
 
+  it("opens the hosted module in Shadowrocket instead of downloading it", () => {
+    const html = getPageHtml("en");
+    expect(html).toContain('id="shadowrocketLink"');
+    expect(html).toContain('href="/modules/qpin-nl.module"');
+    expect(html).toContain('"shadowrocket://install?module="');
+    expect(html).toContain(
+      'encodeURIComponent(shadowrocketModuleUrl)'
+    );
+  });
+
   it("detectLang from Accept-Language", () => {
     expect(detectLang("zh-CN,zh;q=0.9")).toBe("zh-CN");
     expect(detectLang("ja-JP")).toBe("ja");

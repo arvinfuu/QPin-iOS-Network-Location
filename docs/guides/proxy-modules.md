@@ -52,8 +52,9 @@ Priority: **persistent store (web save) > module args > passthrough**.
 
 ## Shadowrocket
 
-1. Config → Module → add `qpin-nl.module`
-2. Enable HTTPS decryption for the two hosts
+1. On the QPin picker page, tap **Shadowrocket** to open the module installer in the app.
+2. If app handoff is unavailable, download `qpin-nl.module` and add it from Config → Module.
+3. Enable HTTPS decryption for the two hosts.
 
 ## Quantumult X
 

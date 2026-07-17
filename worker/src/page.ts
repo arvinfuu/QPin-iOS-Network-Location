@@ -209,7 +209,7 @@ a{color:var(--primary);text-decoration:none}
       <h3 data-i18n="guide"></h3>
       <div class="module-grid">
         <a class="module-link" href="/modules/qpin-nl.sgmodule">Surge</a>
-        <a class="module-link" href="/modules/qpin-nl.module">Shadowrocket</a>
+        <a class="module-link" id="shadowrocketLink" href="/modules/qpin-nl.module">Shadowrocket</a>
         <a class="module-link" href="/modules/qpin-nl.conf">Quantumult X</a>
         <a class="module-link" href="/modules/qpin-nl.lpx">Loon</a>
         <a class="module-link" href="/modules/qpin-nl.stoverride">Stash</a>
@@ -308,6 +308,8 @@ window.__QPIN_NL__ = {
     $("status").textContent = t("hintSave");
     const paths = {en:"en","zh-CN":"zh-CN","zh-TW":"zh-TW",ja:"ja",es:"es"};
     $("hwLink").href = C.hardwareBase + "/" + (paths[lang]||"en") + "/products/hardware";
+    const shadowrocketModuleUrl = new URL("/modules/qpin-nl.module", location.origin).toString();
+    $("shadowrocketLink").href = "shadowrocket://install?module=" + encodeURIComponent(shadowrocketModuleUrl);
     renderFavs();
     updateCoordsLabel();
   }
