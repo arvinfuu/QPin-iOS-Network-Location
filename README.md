@@ -6,7 +6,7 @@
 
 **Deployment:** standalone AWS Amplify static app (`/{lang}/`)
 
-**Live URL:** https://main.d2vo47nlrvlxva.amplifyapp.com/
+**Live URL:** https://ios-location.qpinmap.com/
 **Repository:** `qpin-ios-network-location`
 
 Free, open-source tool under the QPin brand. It rewrites Apple **Wi‑Fi / cell network location** responses locally through Surge, Shadowrocket, Quantumult X, Loon, or Stash — **not** GPS hardware.

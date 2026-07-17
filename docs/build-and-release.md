@@ -4,7 +4,7 @@
 
 The picker is a standalone AWS Amplify static app. It does not import or deploy code from the QPin commerce site, and it does not require an Amplify Function or Cloudflare Worker.
 
-Current production URL: `https://main.d2vo47nlrvlxva.amplifyapp.com/`
+Current production URL: `https://ios-location.qpinmap.com/`
 
 Production responsibilities are isolated:
 
@@ -31,7 +31,9 @@ Output under `dist/site/`:
 For a local production-style build:
 
 ```bash
-QPIN_NL_PUBLIC_BASE=https://example.amplifyapp.com npm run build
+QPIN_NL_PUBLIC_BASE=https://ios-location.qpinmap.com \
+QPIN_NL_ALLOWED_ORIGINS=https://main.d2vo47nlrvlxva.amplifyapp.com \
+npm run build
 ```
 
 `QPIN_NL_PUBLIC_BASE` is used for module install URLs, script URLs, sitemap entries, and the settings-script origin allowlist. On Amplify, the build derives the public base from `AWS_BRANCH` and `AWS_APP_ID` when the variable is not explicitly configured.
