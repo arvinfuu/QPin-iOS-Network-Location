@@ -1,0 +1,10 @@
+name = "qpin-ios-network-location"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+# Optional reference deployment only; the official Amplify artifact is ../dist/site
+# directory = "../dist/site"
+
+# Privacy: do not enable logpush that captures query strings with map URLs.

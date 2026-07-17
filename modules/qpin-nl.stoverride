@@ -1,0 +1,32 @@
+name: QPin iOS Network Location
+desc: "Modify Apple WiFi/cell network location (gs-loc) | Free tool by QPin | Not GPS | Upstream: Yu9191/wloc"
+author: QPin (based on Yu9191/wloc)
+homepage: __APP_BASE__
+category: Tools
+
+http:
+  mitm:
+    - "gs-loc.apple.com"
+    - "gs-loc-cn.apple.com"
+  script:
+    - match: ^https?:\/\/gs-loc(-cn)?\.apple\.com\/clls\/wloc
+      name: QPinNL.Location
+      type: response
+      require-body: true
+      binary-mode: true
+      max-size: 0
+      timeout: 30
+      argument: longitude=&latitude=&accuracy=25&logLevel=info
+    - match: ^https?:\/\/gs-loc(-cn)?\.apple\.com\/qpin-nl\/settings
+      name: QPinNL.Settings
+      type: request
+      require-body: false
+      timeout: 10
+
+script-providers:
+  QPinNL.Location:
+    url: __SCRIPT_BASE__/qpin-nl.js
+    interval: 86400
+  QPinNL.Settings:
+    url: __SCRIPT_BASE__/qpin-nl-settings.js
+    interval: 86400

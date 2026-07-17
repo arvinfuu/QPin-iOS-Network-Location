@@ -1,0 +1,19 @@
+QPin iOS Network Location
+Copyright (c) QPin contributors
+
+This project is a TypeScript rewrite and productization of ideas from:
+
+  WLOC — https://github.com/Yu9191/wloc
+  Author: Yu9191
+
+Secondary development is performed with permission from the WLOC author.
+Do not remove this NOTICE or upstream attribution from distributions.
+
+Original WLOC technical approach also acknowledges:
+
+  proxypin-wloc-spoofer — https://github.com/FFF686868/proxypin-wloc-spoofer
+  NSNanoCat/Util — https://github.com/NSNanoCat/util
+
+QPin branding, documentation, multi-language picker UI, Cloudflare Worker
+SSRF hardening, automated tests, and TypeScript restructuring are original
+work of this repository unless otherwise noted.
