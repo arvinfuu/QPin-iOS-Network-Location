@@ -28,10 +28,10 @@ describe("web page", () => {
   it("uses client-side provider fallback without analytics search parameters", () => {
     const html = getPageHtml("en");
     const mapWrapStart = html.indexOf('<div class="map-wrap">');
-    const panelStart = html.indexOf('<div class="panel">');
+    const selectionStart = html.indexOf('<section class="selection-sheet"');
     const searchStart = html.indexOf('<div class="map-search"');
     expect(searchStart).toBeGreaterThan(mapWrapStart);
-    expect(searchStart).toBeLessThan(panelStart);
+    expect(searchStart).toBeLessThan(selectionStart);
     expect(html).toContain("geocoding-api.open-meteo.com");
     expect(html).toContain("photon.komoot.io");
     expect(html).toContain("nominatim.openstreetmap.org");
@@ -48,19 +48,37 @@ describe("web page", () => {
     expect(html).toContain('renderActive(data)');
   });
 
-  it("shows a persistent success confirmation only after a successful save", () => {
+  it("shows persistent inline success feedback only after a successful save", () => {
     const html = getPageHtml("zh-CN", "?lang=zh-CN");
-    expect(html).toContain('id="saveSuccessModal" role="dialog"');
-    expect(html).toContain('id="savedCoords"');
+    expect(html).toContain('class="save-status" id="status"');
+    expect(html).toContain('id="statusText"');
     expect(html).toContain('showSaveSuccess(data, target)');
+    expect(html).toContain('setSaveStatus("saved", "success")');
     expect(html).toContain(t("zh-CN", "saveSuccessTitle"));
-    expect(html).toContain(t("zh-CN", "saveSuccessBody"));
+    expect(html).not.toContain('id="saveSuccessModal"');
+  });
+
+  it("keeps setup visible and lower-priority tools collapsed", () => {
+    const html = getPageHtml("en");
+    expect(html).toContain('class="setup"');
+    expect(html).toContain('class="module-strip"');
+    expect(html).toContain('<details class="advanced" id="advancedTools">');
+    expect(html).not.toContain('<details class="advanced" id="advancedTools" open>');
+    expect(html).toContain('class="module-link recommended" id="shadowrocketLink"');
   });
 
   it("includes hardware CTA with language path", () => {
     const html = getPageHtml("zh-CN", "?lang=zh-CN");
     expect(html).toContain(hardwarePath("zh-CN"));
     expect(html).toContain("products/hardware");
+  });
+
+  it("links Simplified Chinese users to the Chinese Shadowrocket guide", () => {
+    const zh = getPageHtml("zh-CN", "?lang=zh-CN");
+    const en = getPageHtml("en", "?lang=en");
+    expect(zh).toContain("shadowrocket-setup-zh-CN.md");
+    expect(en).toContain("docs/guides/install.md");
+    expect(en).not.toContain("shadowrocket-setup-zh-CN.md");
   });
 
   it("opens the hosted module in Shadowrocket instead of downloading it", () => {

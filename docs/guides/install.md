@@ -1,5 +1,7 @@
 # Installation guide
 
+中文 Shadowrocket 用户请直接查看：[Shadowrocket 安装与真机排障](./shadowrocket-setup-zh-CN.md)。
+
 ## What this tool does
 
 QPin iOS Network Location intercepts Apple **Wi‑Fi / cell network location** responses (`gs-loc.apple.com` / `gs-loc-cn.apple.com`) inside a proxy app and rewrites coordinates in the `/clls/wloc` Protobuf body.

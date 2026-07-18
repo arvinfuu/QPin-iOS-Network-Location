@@ -111,6 +111,7 @@ No claim that Hardware bypasses third-party app detection.
 
 ## Documentation index
 
+- [Shadowrocket 安装与真机排障（中文）](./docs/guides/shadowrocket-setup-zh-CN.md)
 - [Install](./docs/guides/install.md)
 - [Proxy modules](./docs/guides/proxy-modules.md)
 - [MITM certificate](./docs/guides/mitm-certificate.md)

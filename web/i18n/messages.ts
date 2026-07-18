@@ -65,12 +65,26 @@ export type MessageKey =
   | "runDiag"
   | "mitmOnly"
   | "notGps"
-  | "privacyNote";
+  | "privacyNote"
+  | "setup"
+  | "installModule"
+  | "trustCertificate"
+  | "saveLocationStep"
+  | "restartIfNeeded"
+  | "optional"
+  | "chooseProxyModule"
+  | "proxyHint"
+  | "advancedTools"
+  | "advancedHint"
+  | "moduleReady"
+  | "moduleChecking"
+  | "selectedLocation"
+  | "needGpsControl";
 
 type Dict = Record<MessageKey, string>;
 
 const en: Dict = {
-  title: "QPin Network Location",
+  title: "QPin iOS Network Location",
   seoTitle: "Free iOS Network Location Changer | QPin",
   selectLocation: "Target location",
   saveToDevice: "Save to device",
@@ -129,8 +143,22 @@ const en: Dict = {
   diagTitle: "Module & MITM check",
   runDiag: "Run diagnostic",
   mitmOnly: "MITM only gs-loc.apple.com and gs-loc-cn.apple.com",
-  notGps: "This is not GPS spoofing",
+  notGps: "Network location only — not GPS",
   privacyNote: "Favorites stay in browser localStorage. Active coords never upload to QPin servers.",
+  setup: "Setup",
+  installModule: "Install module",
+  trustCertificate: "Trust certificate",
+  saveLocationStep: "Save location",
+  restartIfNeeded: "Restart if needed",
+  optional: "Optional",
+  chooseProxyModule: "Choose proxy module",
+  proxyHint: "Proxy modules handle network location changes on your device.",
+  advancedTools: "Advanced tools",
+  advancedHint: "Manual coordinates, map link, favorites, status, clear, and diagnostic",
+  moduleReady: "Module ready",
+  moduleChecking: "Checking module…",
+  selectedLocation: "Selected location",
+  needGpsControl: "Need GPS-level location control?",
 };
 
 const zhCN: Dict = {
@@ -194,8 +222,22 @@ const zhCN: Dict = {
   diagTitle: "模块与 MITM 诊断",
   runDiag: "运行诊断",
   mitmOnly: "MITM 仅限 gs-loc.apple.com 与 gs-loc-cn.apple.com",
-  notGps: "这不是 GPS 模拟",
+  notGps: "仅修改网络定位 — 不是 GPS",
   privacyNote: "收藏保存在浏览器 localStorage。生效坐标不会上传到 QPin 后端。",
+  setup: "设置",
+  installModule: "安装模块",
+  trustCertificate: "信任证书",
+  saveLocationStep: "储存位置",
+  restartIfNeeded: "需要时重启",
+  optional: "可选",
+  chooseProxyModule: "选择代理模块",
+  proxyHint: "代理模块负责在当前设备中处理网络定位修改。",
+  advancedTools: "高级工具",
+  advancedHint: "手动坐标、地图链接、收藏、生效状态、清除与诊断",
+  moduleReady: "模块已就绪",
+  moduleChecking: "正在检查模块…",
+  selectedLocation: "已选位置",
+  needGpsControl: "需要 GPS 级定位控制？",
 };
 
 const zhTW: Dict = {
@@ -258,8 +300,22 @@ const zhTW: Dict = {
   diagTitle: "模組與 MITM 診斷",
   runDiag: "執行診斷",
   mitmOnly: "MITM 僅限 gs-loc.apple.com 與 gs-loc-cn.apple.com",
-  notGps: "這不是 GPS 模擬",
+  notGps: "僅修改網路定位 — 不是 GPS",
   privacyNote: "收藏保存在瀏覽器 localStorage。生效座標不會上傳到 QPin 後端。",
+  setup: "設定",
+  installModule: "安裝模組",
+  trustCertificate: "信任憑證",
+  saveLocationStep: "儲存位置",
+  restartIfNeeded: "需要時重新開機",
+  optional: "選用",
+  chooseProxyModule: "選擇代理模組",
+  proxyHint: "代理模組負責在目前裝置中處理網路定位修改。",
+  advancedTools: "進階工具",
+  advancedHint: "手動座標、地圖連結、收藏、生效狀態、清除與診斷",
+  moduleReady: "模組已就緒",
+  moduleChecking: "正在檢查模組…",
+  selectedLocation: "已選位置",
+  needGpsControl: "需要 GPS 等級的定位控制？",
 };
 
 const ja: Dict = {
@@ -322,8 +378,22 @@ const ja: Dict = {
   diagTitle: "モジュール & MITM 診断",
   runDiag: "診断を実行",
   mitmOnly: "MITM は gs-loc.apple.com と gs-loc-cn.apple.com のみ",
-  notGps: "GPS スプーフィングではありません",
+  notGps: "ネットワーク位置のみ — GPS ではありません",
   privacyNote: "お気に入りはブラウザ localStorage のみ。有効座標は QPin に送信されません。",
+  setup: "セットアップ",
+  installModule: "モジュールを追加",
+  trustCertificate: "証明書を信頼",
+  saveLocationStep: "位置を保存",
+  restartIfNeeded: "必要なら再起動",
+  optional: "任意",
+  chooseProxyModule: "プロキシモジュールを選択",
+  proxyHint: "プロキシモジュールが端末内でネットワーク位置を処理します。",
+  advancedTools: "詳細ツール",
+  advancedHint: "手動座標、地図リンク、お気に入り、状態、クリア、診断",
+  moduleReady: "モジュール準備完了",
+  moduleChecking: "モジュールを確認中…",
+  selectedLocation: "選択した位置",
+  needGpsControl: "GPS レベルの位置制御が必要ですか？",
 };
 
 const es: Dict = {
@@ -387,9 +457,23 @@ const es: Dict = {
   diagTitle: "Diagnóstico de módulo y MITM",
   runDiag: "Ejecutar diagnóstico",
   mitmOnly: "MITM solo gs-loc.apple.com y gs-loc-cn.apple.com",
-  notGps: "Esto no es spoofing de GPS",
+  notGps: "Solo ubicación de red — no GPS",
   privacyNote:
     "Favoritos en localStorage del navegador. Las coordenadas activas no se suben a QPin.",
+  setup: "Configuración",
+  installModule: "Instalar módulo",
+  trustCertificate: "Confiar en certificado",
+  saveLocationStep: "Guardar ubicación",
+  restartIfNeeded: "Reiniciar si hace falta",
+  optional: "Opcional",
+  chooseProxyModule: "Elegir módulo de proxy",
+  proxyHint: "El módulo gestiona el cambio de ubicación de red en tu dispositivo.",
+  advancedTools: "Herramientas avanzadas",
+  advancedHint: "Coordenadas, enlace de mapa, favoritos, estado, borrado y diagnóstico",
+  moduleReady: "Módulo listo",
+  moduleChecking: "Comprobando módulo…",
+  selectedLocation: "Ubicación seleccionada",
+  needGpsControl: "¿Necesitas control de ubicación a nivel GPS?",
 };
 
 const ALL: Record<Lang, Dict> = {
