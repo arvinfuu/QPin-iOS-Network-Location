@@ -1,127 +1,204 @@
 # QPin iOS Network Location
 
-**中文名：** QPin iOS 网络定位修改器
+An open-source, local-first iOS network location changer for Surge, Shadowrocket, Quantumult X, Loon, and Stash.
 
-**SEO title:** Free iOS Network Location Changer | QPin
+QPin iOS Network Location intercepts Apple Wi-Fi and cellular network-location responses and replaces their coordinates inside the proxy client. It does **not** modify the device's GPS hardware.
 
-**Deployment:** standalone AWS Amplify static app (`/{lang}/`)
+- [Try the web picker](https://ios-location.qpinmap.com/)
+- [Installation guide](./docs/guides/install.md)
+- [Shadowrocket 中文安装与排障](./docs/guides/shadowrocket-setup-zh-CN.md)
+- [Security policy](./docs/security.md)
 
-**Live URL:** https://ios-location.qpinmap.com/
-**Repository:** `qpin-ios-network-location`
+## Features
 
-Free, open-source tool under the QPin brand. It rewrites Apple **Wi‑Fi / cell network location** responses locally through Surge, Shadowrocket, Quantumult X, Loon, or Stash — **not** GPS hardware.
+- Map-based location picker with search, favorites, manual coordinates, and map-link parsing
+- Local `save`, `query`, and `clear` operations through the proxy module
+- Protobuf and gzip-aware Apple WLOC response patching
+- Modules for five supported proxy clients
+- English, Simplified Chinese, Traditional Chinese, Japanese, and Spanish UI
+- Strict coordinate and accuracy validation
+- Unknown Protobuf field preservation
+- Fail-open behavior when a response cannot be decoded safely
+- No QPin coordinate backend
 
-> Secondary development based on [Yu9191/wloc](https://github.com/Yu9191/wloc), with permission from the WLOC author.
-> See [NOTICE](./NOTICE) for upstream attribution. Private chat content is not published.
+## Scope and limitations
 
-## Honest scope
+| This project does | This project does not |
+|---|---|
+| Intercept `gs-loc.apple.com` and `gs-loc-cn.apple.com` | Modify GPS radio signals |
+| Patch latitude, longitude, and accuracy in `/clls/wloc` responses | Guarantee that every app uses network location |
+| Store selected coordinates in the proxy client's local storage | Upload selected coordinates to QPin servers |
+| Support indoor and weak-GPS network-location testing | Override strong outdoor GPS in every situation |
+| Return the original response when patching fails | Promise anti-ban, undetectability, or absolute safety |
 
-| Does | Does not |
-|------|----------|
-| MITM `gs-loc.apple.com` & `gs-loc-cn.apple.com` only | Spoof GPS radio |
-| Patch `/clls/wloc` Protobuf lat/lon/accuracy | Promise all apps will follow |
-| Save coordinates in the proxy app store | Upload coords to QPin backend |
-| Fail-open on parse errors | Claim anti-ban / “absolute safety” |
-| | Claim untested iOS versions (e.g. iOS 27) |
+iOS and individual apps can combine Wi-Fi, cellular, and GPS sources differently. Real-device testing is required for each target environment.
 
-Outdoor GPS can override network location. Prefer indoor / weak-GPS testing.
+## Supported clients
 
-## Architecture (short)
+| Client | Module |
+|---|---|
+| Shadowrocket | `modules/qpin-nl.module` |
+| Surge | `modules/qpin-nl.sgmodule` |
+| Quantumult X | `modules/qpin-nl.conf` |
+| Loon | `modules/qpin-nl.lpx` |
+| Stash | `modules/qpin-nl.stoverride` |
 
-```
-Amplify picker ──CORS preflight──► gs-loc*.apple.com/qpin-nl/settings
-       │                  (no coordinates in preflight)
-       └──save/query/clear───────► Proxy settings script
-                                      │
-                                      ▼
-                            ($persistentStore / $prefs)
+The modules limit MITM scope to:
 
-Apple locationd ──/clls/wloc──► Proxy response script
-                                      │
-                                      ▼
-                            gunzip → protobuf patch → body out
-                            (or original body if fail-open)
-```
-
-| Area | Keep from WLOC idea | Rewrite in this repo |
-|------|---------------------|----------------------|
-| Protobuf lat/lon/acc patch | Algorithm / field layout | Auditable TypeScript |
-| gzip body handling | Behavior | `fflate` + clean API |
-| Settings save/query | Pattern | Origin-bound preflight + strict validation + passthrough |
-| Modules (5 clients) | Formats | QPin hosts only + empty default args |
-| Place search | — | Browser-only Open-Meteo → Photon → Nominatim fallback |
-| Picker UI | Map-first flow | QPin brand, i18n, diagnostics, Hardware CTA |
-
-## Repository layout
-
-```
-src/core/          protobuf, gzip, wloc patcher
-src/settings/      validate, store, handlers, resolve
-src/platforms/     Surge / QX / Loon / Shadowrocket / Stash adapters
-src/entries/       qpin-nl + settings script entrypoints
-worker/            Static page generator + optional self-host Worker reference
-web/i18n/          EN / 简体 / 繁體 / 日本語 / Español
-modules/           .module .sgmodule .conf .lpx .stoverride
-tests/             vitest suite
-docs/              install, privacy, security, self-host
-dist/site/         Amplify artifact (pages, scripts, modules)
+```text
+gs-loc.apple.com
+gs-loc-cn.apple.com
 ```
 
-## Quick start (developers)
+Do not expand the MITM list to broad patterns such as `*.apple.com`.
+
+## How it works
+
+```text
+Web picker ── save / query / clear ──► Proxy settings script
+                                               │
+                                               ▼
+                                     Local proxy app storage
+
+Apple locationd ── /clls/wloc ──────► Proxy response script
+                                               │
+                                               ▼
+                              gunzip → Protobuf patch → response
+                                  or original body on failure
+```
+
+The settings endpoint is intercepted locally by the proxy script. Selected coordinates are not processed by a QPin application server.
+
+## Quick start
+
+### End users
+
+1. Open the [web picker](https://ios-location.qpinmap.com/).
+2. Install the module for your proxy client.
+3. Install and fully trust the proxy client's MITM CA certificate.
+4. Enable HTTPS decryption for the two WLOC hostnames only.
+5. Select a location and save it to the device.
+6. Verify the active coordinates in **Advanced tools**.
+
+See the [installation guide](./docs/guides/install.md) for the complete setup and removal process.
+
+### Developers
+
+Requirements:
+
+- Node.js 18 or newer
+- npm
 
 ```bash
+git clone https://github.com/arvinfuu/QPin-iOS-Network-Location.git
+cd QPin-iOS-Network-Location
 npm install
-npm run check    # lint + test + build
-npm run dev:web  # local picker http://127.0.0.1:8788
+npm run check
 ```
 
-Proxy install for end users: [docs/guides/install.md](./docs/guides/install.md).
+Start the local picker:
 
-## Modules
+```bash
+npm run dev:web
+```
 
-After `npm run build`, use `dist/site/modules/*`; the Amplify build resolves both URL placeholders.
+The development page is available at:
 
-MITM hostnames **only**:
+```text
+http://127.0.0.1:8788/
+```
 
-- `gs-loc.apple.com`
-- `gs-loc-cn.apple.com`
+## Commands
 
-## Privacy
+| Command | Purpose |
+|---|---|
+| `npm run lint` | Type-check the core, worker, and web code |
+| `npm test` | Run the Vitest suite |
+| `npm run build` | Build proxy scripts, modules, and the static site |
+| `npm run check` | Run lint, tests, and the complete build |
+| `npm run dev:web` | Start the local web picker |
 
-- No collection of decrypted WLOC bodies, BSSIDs, or cell IDs
-- Active coordinates are sent only after the local proxy module passes preflight; QPin has no coordinate backend
-- Analytics (if any): `network_location_save` / `network_location_clear` / `network_location_diagnostic` / `hardware_cta_click` only
-- Details: [docs/privacy.md](./docs/privacy.md)
+## Repository structure
 
-## QPin Hardware CTA
+```text
+src/core/          Protobuf, gzip, body handling, and WLOC patching
+src/settings/      Validation and local save/query/clear handlers
+src/platforms/     Proxy-client runtime adapters
+src/entries/       Proxy script entry points
+modules/           Surge, Shadowrocket, QX, Loon, and Stash modules
+web/i18n/          UI translations
+worker/            Static page generator and optional Worker reference
+tests/             Unit and integration tests
+docs/              User, security, privacy, and development documentation
+```
 
-When free network location is a poor fit (outdoor GPS, no proxy, no MITM cert, need more stable mobility), the picker shows a restrained CTA to:
+## Privacy and security
 
-`/{lang}/products/hardware`
+- The project does not collect decrypted WLOC payloads, BSSIDs, or cell identifiers.
+- Favorites remain in browser `localStorage`.
+- Active coordinates remain in the proxy client's local storage.
+- Search requests go directly from the browser to the configured public geocoding providers.
+- Analytics, when enabled by a site operator, must not include coordinates or search terms.
+- The proxy MITM certificate should be removed when it is no longer needed.
 
-No claim that Hardware bypasses third-party app detection.
+Read [Privacy](./docs/privacy.md), [Security](./docs/security.md), and the [Disclaimer](./docs/disclaimer.md) before use.
 
-## Upstream & license
+## Testing
 
-- Upstream: [Yu9191/wloc](https://github.com/Yu9191/wloc)
-- Original idea lineage: [proxypin-wloc-spoofer](https://github.com/FFF686868/proxypin-wloc-spoofer)
-- License: [MIT](./LICENSE)
-- Attribution: [NOTICE](./NOTICE)
-- Disclaimer (EN/中文): [docs/disclaimer.md](./docs/disclaimer.md)
+The test suite covers:
 
-## Documentation index
+- Positive, negative, and zero coordinates
+- Accuracy validation
+- Protobuf unknown-field preservation
+- Gzip input and corrupt-body fail-open behavior
+- Settings save/query/clear behavior
+- Module hostname scope
+- Worker SSRF protections
+- Static page routing and privacy boundaries
 
-- [Shadowrocket 安装与真机排障（中文）](./docs/guides/shadowrocket-setup-zh-CN.md)
-- [Install](./docs/guides/install.md)
+```bash
+npm run check
+```
+
+Automated tests do not replace real iPhone validation across iOS versions, regions, network types, proxy clients, and indoor or outdoor conditions. See the [device test checklist](./docs/guides/device-test-checklist.md).
+
+## Documentation
+
+- [Installation guide](./docs/guides/install.md)
+- [Shadowrocket 安装与真机排障](./docs/guides/shadowrocket-setup-zh-CN.md)
 - [Proxy modules](./docs/guides/proxy-modules.md)
 - [MITM certificate](./docs/guides/mitm-certificate.md)
-- [FAQ](./docs/guides/faq.md)
 - [Troubleshooting](./docs/guides/troubleshooting.md)
+- [FAQ](./docs/guides/faq.md)
 - [Device test checklist](./docs/guides/device-test-checklist.md)
-- [Self-host Worker](./docs/self-host-worker.md)
-- [Build & release](./docs/build-and-release.md)
-- [Security](./docs/security.md)
+- [Self-hosting reference](./docs/self-host-worker.md)
+- [Build and release](./docs/build-and-release.md)
 
-## Still needs real iPhone verification
+## Contributing
 
-See the checklist. Unit tests do **not** replace device validation for iOS 18 / 26, CN vs international WLOC hosts, Wi‑Fi vs cell, indoor vs outdoor, or full uninstall recovery.
+Issues and pull requests are welcome.
+
+Before opening a pull request:
+
+1. Keep MITM scope limited to the two WLOC hostnames.
+2. Do not add coordinate or search-term analytics.
+3. Preserve fail-open behavior for malformed responses.
+4. Add or update tests for behavior changes.
+5. Run `npm run check`.
+
+Please do not include proxy credentials, exported CA data, private messages, device identifiers, or decrypted location payloads in issues.
+
+## Upstream and attribution
+
+This project is a TypeScript implementation based on the WLOC approach:
+
+- [Yu9191/wloc](https://github.com/Yu9191/wloc)
+- [FFF686868/proxypin-wloc-spoofer](https://github.com/FFF686868/proxypin-wloc-spoofer)
+
+See [NOTICE](./NOTICE) for attribution details.
+
+## License
+
+Released under the [MIT License](./LICENSE).
+
+Apple, iOS, and related product names are trademarks of Apple Inc. This project is not affiliated with or endorsed by Apple.
