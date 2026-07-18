@@ -2,7 +2,7 @@
 
 ## Production architecture
 
-The picker is a standalone AWS Amplify static app. It does not import or deploy code from the QPin commerce site, and it does not require an Amplify Function or Cloudflare Worker.
+The picker is a standalone AWS Amplify static app. It does not import or deploy code from the QPin commerce site. Direct map links are parsed in the browser; an optional Cloudflare Worker can resolve allowlisted short links.
 
 Current production URL: `https://ios-location.qpinmap.com/`
 
@@ -23,10 +23,13 @@ npm run check
 Output under `dist/site/`:
 
 - `/index.html` and `/{lang}/index.html`
+- `/tools/ios-network-location/index.html`
 - `/scripts/qpin-nl.js`
 - `/scripts/qpin-nl-settings.js`
+- `/scripts/qpin-map-links.js`
 - `/modules/*`
 - `/robots.txt` and `/sitemap.xml`
+- `/release.json`
 
 For a local production-style build:
 
@@ -40,15 +43,20 @@ npm run build
 
 Optional additional picker origins can be comma-separated in `QPIN_NL_ALLOWED_ORIGINS`. Do not use a wildcard.
 
+Set `QPIN_NL_PARSE_API` to an allowlisted Worker endpoint when short-link resolution is enabled. Leave it unset to keep all direct-link parsing in the browser.
+
 ## Amplify
 
 The repository root contains `amplify.yml`:
 
-1. `npm ci`
-2. `npm run check`
-3. publish `dist/site`
+1. Select Node.js 22 with `nvm`.
+2. Run `npm ci`.
+3. Run `npm run check`.
+4. Publish `dist/site`.
 
 No rewrite to the QPin commerce application is required. Locale pages use physical directories, so Amplify can serve them without an SPA catch-all.
+
+Automatic branch builds are controlled in the Amplify branch configuration, not by `amplify.yml`. Keep the setting explicit and verify it before each release.
 
 `customHttp.yml` defines the standalone app's CSP, privacy headers, and short cache lifetime for proxy scripts and modules.
 

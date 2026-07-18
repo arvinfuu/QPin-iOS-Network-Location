@@ -18,7 +18,20 @@ const SETTINGS_PROTOCOL_VERSION = 1;
 const FAV_KEY = "qpin_nl_favorites";
 const LANG_KEY = "qpin_nl_lang";
 
-export function getPageHtml(acceptLanguage?: string, search = ""): string {
+export interface PageOptions {
+  canonicalUrl?: string;
+  alternateUrls?: Partial<Record<Lang, string>>;
+  xDefaultUrl?: string;
+  parseApi?: string;
+  robots?: "index,follow" | "noindex,nofollow";
+  buildCommit?: string;
+}
+
+export function getPageHtml(
+  acceptLanguage?: string,
+  search = "",
+  options: PageOptions = {}
+): string {
   const lang = detectLang(acceptLanguage, search);
   const msgs = messagesJson(lang);
   const hw = hardwarePath(lang);
@@ -31,6 +44,22 @@ export function getPageHtml(acceptLanguage?: string, search = ""): string {
     (l) =>
       `<option value="${l.code}"${l.code === lang ? " selected" : ""}>${l.label}</option>`
   ).join("");
+  const canonicalTag = options.canonicalUrl
+    ? `<link rel="canonical" href="${escapeHtml(options.canonicalUrl)}">`
+    : "";
+  const alternateTags = LANGS.map((item) => {
+    const href = options.alternateUrls?.[item.code];
+    return href
+      ? `<link rel="alternate" hreflang="${item.code}" href="${escapeHtml(href)}">`
+      : "";
+  })
+    .filter(Boolean)
+    .concat(
+      options.xDefaultUrl
+        ? [`<link rel="alternate" hreflang="x-default" href="${escapeHtml(options.xDefaultUrl)}">`]
+        : []
+    )
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -39,14 +68,17 @@ export function getPageHtml(acceptLanguage?: string, search = ""): string {
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="Free iOS network location changer via proxy MITM. WiFi/cell only — not GPS. By QPin.">
-<meta name="robots" content="index,follow">
+<meta name="robots" content="${options.robots || "index,follow"}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="QPin NL">
 <meta property="og:title" content="${escapeHtml(title)}">
+${canonicalTag}
+${alternateTags}
 <link rel="icon" type="image/png" href="/qpin-logo.png">
 <link rel="apple-touch-icon" href="/qpin-logo.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""><\/script>
+<script src="/scripts/qpin-map-links.js"><\/script>
 <style>
 :root{
   --bg:#f3f6fa;--surface:#fff;--surface-soft:#f8fafc;--border:#d9e0e9;
@@ -375,6 +407,8 @@ window.__QPIN_NL__ = {
   settingsApi: ${JSON.stringify(SETTINGS_API)},
   settingsService: ${JSON.stringify(SETTINGS_SERVICE)},
   settingsProtocolVersion: ${SETTINGS_PROTOCOL_VERSION},
+  parseApi: ${JSON.stringify(options.parseApi || "")},
+  buildCommit: ${JSON.stringify(options.buildCommit || "unknown")},
   favKey: ${JSON.stringify(FAV_KEY)},
   langKey: ${JSON.stringify(LANG_KEY)},
   hardwareBase: "https://qpinmap.com"
@@ -716,32 +750,52 @@ window.__QPIN_NL__ = {
   }
 
   function extractCoords(raw){
-    const text = String(raw || "").trim();
-    const patterns = [
-      /(?:coordinate|ll|sll)=(-?\\d{1,3}(?:\\.\\d+)?)(?:,|%2C)(-?\\d{1,3}(?:\\.\\d+)?)/i,
-      /@(-?\\d{1,3}(?:\\.\\d+)?),(-?\\d{1,3}(?:\\.\\d+)?)/,
-      /[?&](?:q|query|location)=(-?\\d{1,3}(?:\\.\\d+)?)(?:,|%2C)(-?\\d{1,3}(?:\\.\\d+)?)/i,
-      /(-?\\d{1,3}(?:\\.\\d+)?)\\s*[,\\s]\\s*(-?\\d{1,3}(?:\\.\\d+)?)/
-    ];
-    for (const pattern of patterns) {
-      const hit = text.match(pattern);
-      if (!hit) continue;
-      const la = Number(hit[1]), lo = Number(hit[2]);
-      if (Number.isFinite(la) && Number.isFinite(lo) && la >= -90 && la <= 90 && lo >= -180 && lo <= 180) return {lat:la, lon:lo};
-    }
-    return null;
+    try {
+      const api = window.QPinMapLinks;
+      if (!api || typeof api.extractFromString !== "function") return null;
+      const parsed = api.extractFromString(String(raw || "").trim());
+      return parsed ? api.normalizeMapCoordinates(parsed, "auto") : null;
+    } catch { return null; }
   }
 
   async function parseUrl(){
     const raw = $("urlInput").value.trim();
     if (!raw) return;
+    $("parseBtn").disabled = true;
     const hit = extractCoords(raw);
     if (hit) {
-      setPoint(hit.lat, hit.lon, true);
+      setPoint(hit.lat, hit.lon, true, hit.name || undefined);
       toast(t("parseOk"));
+      $("parseBtn").disabled = false;
       return;
     }
-    toast(t("parseFail"));
+    if (!C.parseApi) {
+      toast(t("parseFail"));
+      $("parseBtn").disabled = false;
+      return;
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const endpoint = new URL(C.parseApi, location.origin);
+      endpoint.searchParams.set("u", raw);
+      const res = await fetch(endpoint.toString(), {
+        signal: ctrl.signal,
+        cache: "no-store",
+        credentials: "omit",
+        referrerPolicy: "no-referrer"
+      });
+      if (!res.ok) throw new Error("parse failed");
+      const data = await res.json();
+      if (!data || !Number.isFinite(data.lat) || !Number.isFinite(data.lon)) throw new Error("invalid parse response");
+      setPoint(data.lat, data.lon, true, data.name || undefined);
+      toast(t("parseOk"));
+    } catch {
+      toast(t("parseFail"));
+    } finally {
+      clearTimeout(timer);
+      $("parseBtn").disabled = false;
+    }
   }
 
   function normalizeResults(items){

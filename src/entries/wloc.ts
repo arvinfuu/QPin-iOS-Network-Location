@@ -82,7 +82,7 @@ function run(): void {
   headers["Content-Length"] = String(result.body.length);
 
   if (target) {
-    logger.info(
+    logger.debug(
       `target=${redactCoords(target.longitude, target.latitude)} acc=${target.accuracy}`
     );
   }

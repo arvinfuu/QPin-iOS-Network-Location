@@ -13,9 +13,13 @@
  *   - SSRF-protected outbound fetches
  */
 
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { corsHeaders, jsonResponse, textResponse } from "./cors.js";
-import { gcj02ToWgs84, round6 } from "./coords.js";
+import {
+  normalizeMapCoordinates,
+  round6,
+  type CoordinateSystem,
+} from "../../src/core/coordinates.js";
 import { parseCoords } from "./parse.js";
 import { checkRateLimit } from "./rate-limit.js";
 import { getPageHtml } from "./page.js";
@@ -62,12 +66,10 @@ app.get("/api/parse", async (c) => {
   const fmt = (c.req.query("format") || "json").toLowerCase();
 
   try {
-    let { lat, lon, name, src } = await parseCoords(raw);
-    const needConv =
-      cs === "gcj" || (cs !== "none" && (src === "amap" || src === "apple" || src === "baidu"));
-    if (needConv) {
-      ({ lat, lon } = gcj02ToWgs84(lat, lon));
-    }
+    const parsed = await parseCoords(raw);
+    const system: CoordinateSystem =
+      cs === "none" || cs === "gcj" || cs === "bd09" ? cs : "auto";
+    let { lat, lon, name, src, crs } = normalizeMapCoordinates(parsed, system);
     lat = round6(lat);
     lon = round6(lon);
     name = name || "";
@@ -76,16 +78,24 @@ app.get("/api/parse", async (c) => {
     if (fmt === "text") {
       return textResponse(`lat=${lat}&lon=${lon}`, 200, origin);
     }
-    return jsonResponse({ lat, lon, name, src, crs: needConv ? "wgs84" : "as-is" }, 200, origin);
+    return jsonResponse({ lat, lon, name, src, crs }, 200, origin);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "parse failed";
     return jsonResponse({ error: msg }, 422, origin);
   }
 });
 
-function page(c: { req: { header: (n: string) => string | undefined } }): Response {
+function page(c: Context): Response {
   const lang = c.req.header("Accept-Language") || "en";
-  return new Response(getPageHtml(lang), {
+  const requestUrl = new URL(c.req.url);
+  const canonicalPath = requestUrl.pathname.startsWith("/tools/")
+    ? "/tools/ios-network-location/"
+    : "/";
+  return new Response(getPageHtml(lang, "", {
+    canonicalUrl: `${requestUrl.origin}${canonicalPath}`,
+    parseApi: `${requestUrl.origin}/api/parse`,
+    buildCommit: "worker",
+  }), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=300",

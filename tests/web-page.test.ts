@@ -15,6 +15,8 @@ describe("web page", () => {
       expect(html).toContain('rel="apple-touch-icon"');
       expect(html).toContain("X-QPin-NL-Protocol");
       expect(html).toContain("X-QPin-NL-Longitude");
+      expect(html).toContain('/scripts/qpin-map-links.js');
+      expect(html).toContain("normalizeMapCoordinates");
       expect(html).not.toContain("action=save&lon=");
       expect(html).not.toContain('parseApi: "/api/parse"');
       // No decorative marketing hero fluff
@@ -23,6 +25,26 @@ describe("web page", () => {
       // Card radius cap style present
       expect(html).toContain("--radius:8px");
     }
+  });
+
+  it("renders canonical, alternate, parser, and build metadata", () => {
+    const html = getPageHtml("en", "", {
+      canonicalUrl: "https://ios-location.qpinmap.com/tools/ios-network-location/",
+      alternateUrls: {
+        en: "https://ios-location.qpinmap.com/en/",
+        "zh-CN": "https://ios-location.qpinmap.com/zh-CN/",
+      },
+      xDefaultUrl: "https://ios-location.qpinmap.com/tools/ios-network-location/",
+      parseApi: "https://parse.example/api/parse",
+      buildCommit: "abc123",
+    });
+    expect(html).toContain(
+      '<link rel="canonical" href="https://ios-location.qpinmap.com/tools/ios-network-location/">'
+    );
+    expect(html).toContain('hreflang="zh-CN"');
+    expect(html).toContain('hreflang="x-default"');
+    expect(html).toContain('parseApi: "https://parse.example/api/parse"');
+    expect(html).toContain('buildCommit: "abc123"');
   });
 
   it("uses client-side provider fallback without analytics search parameters", () => {

@@ -5,114 +5,11 @@ import {
   resolveRedirect,
   SsrfError,
 } from "./ssrf.js";
+import { extractFromString } from "../../src/core/map-links.js";
+import type { SourcedCoordinates as ParsedCoords } from "../../src/core/coordinates.js";
 
-export type CoordSource = "apple" | "amap" | "google" | "baidu" | "text" | "unknown";
-
-export interface ParsedCoords {
-  lat: number;
-  lon: number;
-  name: string;
-  src: CoordSource;
-}
-
-function validated(value: ParsedCoords): ParsedCoords | null {
-  if (
-    !Number.isFinite(value.lat) ||
-    !Number.isFinite(value.lon) ||
-    value.lat < -90 ||
-    value.lat > 90 ||
-    value.lon < -180 ||
-    value.lon > 180
-  ) {
-    return null;
-  }
-  return value;
-}
-
-export function safeDecode(s: string): string {
-  if (!s) return "";
-  try {
-    return decodeURIComponent(String(s).replace(/\+/g, " "));
-  } catch {
-    return String(s);
-  }
-}
-
-/**
- * Extract lat/lon/name from map URLs or free text.
- * Does not fetch network resources.
- */
-export function extractFromString(s: string): ParsedCoords | null {
-  if (!s) return null;
-  const str = String(s);
-  let m: RegExpMatchArray | null;
-
-  // Apple Maps: coordinate= / ll= / sll=
-  m = str.match(/(?:coordinate|ll|sll)=(-?\d{1,3}\.\d+)(?:,|%2C)(-?\d{1,3}\.\d+)/i);
-  if (m) {
-    const nm = str.match(/[?&]name=([^&]+)/i);
-    return validated({
-      lat: +m[1]!,
-      lon: +m[2]!,
-      name: nm ? safeDecode(nm[1]!) : "",
-      src: "apple",
-    });
-  }
-
-  // Google: @lat,lon or q=lat,lon
-  m = str.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
-  if (m && /google|goo\.gl/i.test(str)) {
-    return validated({ lat: +m[1]!, lon: +m[2]!, name: "", src: "google" });
-  }
-  m = str.match(/[?&](?:q|query)=(-?\d{1,3}\.\d+)(?:,|%2C)(-?\d{1,3}\.\d+)/i);
-  if (m && /google|goo\.gl/i.test(str)) {
-    return validated({ lat: +m[1]!, lon: +m[2]!, name: "", src: "google" });
-  }
-
-  // Amap: ?p=POIID,lat,lon,name,city
-  m = str.match(
-    /[?&]p=[^,&%]*(?:,|%2C)(-?\d{1,3}\.\d+)(?:,|%2C)(-?\d{1,3}\.\d+)(?:(?:,|%2C)((?:(?!,|%2C|&).)+))?/i
-  );
-  if (m) {
-    return validated({
-      lat: +m[1]!,
-      lon: +m[2]!,
-      name: m[3] ? safeDecode(m[3]) : "",
-      src: "amap",
-    });
-  }
-
-  // Amap: ?q=lat,lon,name
-  m = str.match(
-    /[?&]q=(-?\d{1,3}\.\d+)(?:,|%2C)(-?\d{1,3}\.\d+)(?:(?:,|%2C)((?:(?!,|%2C|&).)+))?/i
-  );
-  if (m && /amap|gaode/i.test(str)) {
-    return validated({
-      lat: +m[1]!,
-      lon: +m[2]!,
-      name: m[3] ? safeDecode(m[3]) : "",
-      src: "amap",
-    });
-  }
-
-  // Baidu: location=lat,lon or &lat= &lng=
-  m = str.match(/location=(-?\d{1,3}\.\d+)(?:,|%2C)(-?\d{1,3}\.\d+)/i);
-  if (m && /baidu/i.test(str)) {
-    return validated({ lat: +m[1]!, lon: +m[2]!, name: "", src: "baidu" });
-  }
-  m = str.match(/[?&]lat=(-?\d{1,3}\.\d+).*?[?&]l(?:ng|on)=(-?\d{1,3}\.\d+)/i);
-  if (m && /baidu/i.test(str)) {
-    return validated({ lat: +m[1]!, lon: +m[2]!, name: "", src: "baidu" });
-  }
-
-  // Plain text: lat,lon with enough decimals
-  m = str.match(/(-?\d{1,3}\.\d{4,})\s*(?:,|%2C)\s*(-?\d{1,3}\.\d{4,})/);
-  if (m) {
-    return validated({ lat: +m[1]!, lon: +m[2]!, name: "", src: "text" });
-  }
-
-  return null;
-}
+export { extractFromString } from "../../src/core/map-links.js";
+export type { CoordinateSource as CoordSource } from "../../src/core/coordinates.js";
 
 async function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Response> {
   const controller = new AbortController();

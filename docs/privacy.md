@@ -18,9 +18,9 @@ The official Amplify app has no QPin search backend. User-initiated place search
 - Photon
 - Nominatim
 
-The search term is sent by the browser to the provider that answers the request. It is not sent to QPin analytics or a QPin API. Coordinate text and map URLs are parsed locally without resolving short links.
+The search term is sent by the browser to the provider that answers the request. It is not sent to QPin analytics or a QPin API. Coordinate text and direct map URLs are parsed locally.
 
-The optional self-host Worker under `worker/` is reference code only and is not part of the official Amplify deployment.
+The optional self-host Worker under `worker/` can resolve short links from an explicit map-domain allowlist. If enabled, the map link is sent to that Worker for resolution, but the Worker does not store or log the full link or resolved coordinates.
 
 ## What we do not collect
 

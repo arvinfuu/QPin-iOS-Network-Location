@@ -2,6 +2,7 @@
 import * as esbuild from "esbuild";
 import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getPageHtml } from "../worker/src/page.js";
@@ -10,7 +11,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const siteDir = path.join(root, "dist/site");
 const LANGS = ["en", "zh-CN", "zh-TW", "ja", "es"] as const;
-const BUILD_STAMP = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
+function resolveBuildCommit(): string {
+  if (process.env.AWS_COMMIT_ID) return process.env.AWS_COMMIT_ID;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+const BUILD_COMMIT = resolveBuildCommit();
 
 function normalizeBase(value: string): string {
   return value.trim().replace(/\/$/, "");
@@ -26,6 +37,7 @@ function resolvePublicBase(): string {
 
 const publicBase = resolvePublicBase();
 const scriptBase = `${publicBase}/scripts`;
+const parseApi = (process.env.QPIN_NL_PARSE_API || "").trim();
 const allowedOrigins = Array.from(
   new Set(
     [
@@ -43,7 +55,7 @@ const allowedOrigins = Array.from(
 
 function banner(name: string): string {
   return `/* ${name} - QPin iOS Network Location
- * Build: ${BUILD_STAMP}
+ * Build commit: ${BUILD_COMMIT}
  * Upstream concept: https://github.com/Yu9191/wloc (Yu9191)
  * Original idea: https://github.com/FFF686868/proxypin-wloc-spoofer
  * License: MIT - see repository NOTICE
@@ -80,28 +92,65 @@ async function buildScripts(): Promise<void> {
       __QPIN_NL_ALLOWED_ORIGINS__: JSON.stringify(allowedOrigins),
     },
   });
+  await esbuild.build({
+    ...common,
+    entryPoints: [path.join(root, "src/entries/map-links.ts")],
+    outfile: path.join(outDir, "qpin-map-links.js"),
+    banner: { js: banner("qpin-map-links.js") },
+    globalName: "QPinMapLinks",
+  });
   console.log(`Scripts: ${scriptBase}`);
 }
 
 async function buildWeb(): Promise<void> {
   await mkdir(siteDir, { recursive: true });
+  const toolUrl = `${publicBase}/tools/ios-network-location/`;
+  const alternateUrls = Object.fromEntries(
+    LANGS.map((lang) => [lang, `${publicBase}/${lang}/`])
+  );
+  const pageOptions = (canonicalUrl: string) => ({
+    canonicalUrl,
+    alternateUrls,
+    xDefaultUrl: toolUrl,
+    parseApi,
+    buildCommit: BUILD_COMMIT,
+  });
   await copyFile(path.join(root, "assets/qpin-logo.png"), path.join(siteDir, "qpin-logo.png"));
-  await writeFile(path.join(siteDir, "index.html"), getPageHtml("en"), "utf8");
-  await writeFile(path.join(siteDir, "404.html"), getPageHtml("en"), "utf8");
+  await writeFile(path.join(siteDir, "index.html"), getPageHtml("en", "", pageOptions(toolUrl)), "utf8");
+  await writeFile(
+    path.join(siteDir, "404.html"),
+    getPageHtml("en", "", { ...pageOptions(toolUrl), robots: "noindex,nofollow" }),
+    "utf8"
+  );
+  const toolDir = path.join(siteDir, "tools/ios-network-location");
+  await mkdir(toolDir, { recursive: true });
+  await writeFile(path.join(toolDir, "index.html"), getPageHtml("en", "", pageOptions(toolUrl)), "utf8");
   for (const lang of LANGS) {
     const dir = path.join(siteDir, lang);
     await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, "index.html"), getPageHtml(lang, `?lang=${lang}`), "utf8");
+    await writeFile(
+      path.join(dir, "index.html"),
+      getPageHtml(lang, `?lang=${lang}`, pageOptions(alternateUrls[lang]!)),
+      "utf8"
+    );
   }
   await writeFile(
     path.join(siteDir, "robots.txt"),
     `User-agent: *\nAllow: /\nSitemap: ${publicBase}/sitemap.xml\n`,
     "utf8"
   );
-  const urls = [publicBase, ...LANGS.map((lang) => `${publicBase}/${lang}/`)];
+  const urls = [toolUrl, ...LANGS.map((lang) => `${publicBase}/${lang}/`)];
   await writeFile(
     path.join(siteDir, "sitemap.xml"),
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map((url) => `\n  <url><loc>${url}</loc></url>`).join("")}\n</urlset>\n`,
+    "utf8"
+  );
+  const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")) as {
+    version: string;
+  };
+  await writeFile(
+    path.join(siteDir, "release.json"),
+    `${JSON.stringify({ service: "qpin-ios-network-location", version: packageJson.version, commit: BUILD_COMMIT }, null, 2)}\n`,
     "utf8"
   );
   console.log(`Site: ${publicBase}`);
